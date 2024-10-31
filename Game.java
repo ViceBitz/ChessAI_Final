@@ -27,6 +27,7 @@ public class Game
 	public static String gameTitle = "Unnamed";
 	
 	public static Color NEAR_COLOR = Color.WHITE;
+	public static Color START_COLOR = Color.WHITE;
 	public static final boolean LOOP_GAME = false;
 
 	public static SmartPlayerNegamax whiteAI, blackAI;
@@ -68,7 +69,7 @@ public class Game
 		while (true)
 		{
 			boolean success;
-			success = nextTurn(board, display, white);
+			success = nextTurn(board, display, START_COLOR==Color.WHITE?white:black);
 			if (!success) {
 				System.out.println("Game Over. Black Wins through White's Resignation.");
 				return;
@@ -78,7 +79,7 @@ public class Game
 				System.out.println("Game Over. White Wins.");
 				return;
 			}
-			success = nextTurn(board, display, black);
+			success = nextTurn(board, display, START_COLOR==Color.WHITE?black:white);
 			if (!success) {
 				System.out.println("Game Over. White Wins through Black's Resignation.");
 				return;
@@ -213,8 +214,9 @@ public class Game
 		 */
 
 		//Game Configurations
-		boolean botWhite = args.length == 0 ? true : args[0] == "W";
-		NEAR_COLOR = args.length == 2 ? (args[1] == "W" ? Color.WHITE : Color.BLACK) : (botWhite ? Color.WHITE : Color.BLACK);
+		boolean botWhite = false;
+		NEAR_COLOR = Color.BLACK;
+		
 		gameTitle = "Classical";
 
 		//Setup hashing scheme
@@ -232,17 +234,18 @@ public class Game
 			
 			/*
 			String[] ret = {
-				"WR","","","WK","WQ","WB","WN","WR",
-				"WP","WP","WP","","","WP","WP","WP",
-				"","","WN","","WB","","","",
-				"","","","BN","WP","","","",
-				"","","","","WP","","","",
-				"","BP","","","","WQ","","",
-				"BP","BB","BP","BP","","BP","BP","BP",
-				"BR","","","BK","BQ","BB","BN","BR"
+				"","WK","","WR","","","","",
+				"WP","WN","","","","","WP","WP",
+				"","WP","WP","","","","WQ","",
+				"","","WB","WP","","","","",
+				"","","","","","","","",
+				"","BP","BN","","BP","BQ","BP","",
+				"BP","BB","BP","","","","","BP",
+				"","BK","","BR","","","",""
 			};
 			setupCustomBoard(board, ret);
 			board.getKing(Color.WHITE).setMoved(true);
+			board.getKing(Color.BLACK).setMoved(true);
 			*/
 
 			setupBoard(board);
