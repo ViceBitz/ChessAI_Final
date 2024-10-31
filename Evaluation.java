@@ -5,13 +5,17 @@ import java.util.*;
  * A class containing all the methods necessary to evaluate a chess board state
  * 
  * @author Victor Gong
- * @version 3/31/2023
+ * @version 10/31/2024
  *
  */
 public class Evaluation
 {
 	private static final boolean APPROXIMATE_EVALUATION = false;
 
+	//Multiplier presets for aggressive/defensive play styles
+	private static final double[] AGGRO_MULT = {2, 0.5, 1, 0.8, 0.6, 0.6, 100/25}; 
+	private static final double[] DEF_MULT = {1, 0.5, 1, 0.9, 0.8, 0.8, 100/35};
+	private static final double[] EVAL_MULT = AGGRO_MULT;
 	/**
 	 * Gets the material of singular piece from the pieceEnum
 	 * @param pieceEnum The piece enum
@@ -426,7 +430,8 @@ public class Evaluation
 	}
 	
 	/**
-	 * Evaluation function for the current state of the board (optionalMobilityHelper for if allMoves already calculated)
+	 * Evaluation function for the current state of the board
+	 * [Factors categorized by A - aggressive and D - defensive; change multipliers on A/D for different playstyles]
 	 * 
 	 * @param board The board
 	 * @return An integer describing the board, more negative favoring black and vice versa
@@ -437,59 +442,59 @@ public class Evaluation
 		Bitboard bb = board.getBitboard();
 		int score = 0;
 
-		// Material Balance - O(16) per side
+		// Material Balance - O(16) per side - A
 		int whiteMaterialMG = calculateMaterial(board, Color.WHITE, false);
 		int blackMaterialMG = calculateMaterial(board, Color.BLACK, false);
 		int whiteMaterialEG = calculateMaterial(board, Color.WHITE, true);
 		int blackMaterialEG = calculateMaterial(board, Color.BLACK, true);
 		
-		int deltaMaterialMG = whiteMaterialMG - blackMaterialMG;
-		int deltaMaterialEG = whiteMaterialEG - blackMaterialEG;
+		int deltaMaterialMG = whiteMaterialMG - blackMaterialMG; deltaMaterialMG *= EVAL_MULT[0];
+		int deltaMaterialEG = whiteMaterialEG - blackMaterialEG; deltaMaterialEG *= EVAL_MULT[0];
 
 
-		// Position - O(16) per side (x0.5 multiplier)
+		// Position - O(16) per side (x0.5 multiplier) - D
 		int whitePositionMG = calculatePiecePosition(board, Color.WHITE, false);
 		int blackPositionMG = calculatePiecePosition(board, Color.BLACK, false);
 		int whitePositionEG = calculatePiecePosition(board, Color.WHITE, true);
 		int blackPositionEG = calculatePiecePosition(board, Color.BLACK, true);
 		
-		int deltaPositionMG = (whitePositionMG - blackPositionMG) * 5/10;
-		int deltaPositionEG = (whitePositionEG - blackPositionEG) * 5/10;
+		int deltaPositionMG = whitePositionMG - blackPositionMG; deltaPositionMG *= EVAL_MULT[1];
+		int deltaPositionEG = whitePositionEG - blackPositionEG; deltaPositionEG *= EVAL_MULT[1];
 		
-		//Bishop Pair - O(1)
+		//Bishop Pair - O(1) - D
 		int whiteBishopPairMG = calculateBishopPair(board, Color.WHITE, false);
 		int blackBishopPairMG = calculateBishopPair(board, Color.BLACK, false);
 		int whiteBishopPairEG = calculateBishopPair(board, Color.WHITE, true);
 		int blackBishopPairEG = calculateBishopPair(board, Color.BLACK, true);
 		
-		int deltaBishopPairMG = whiteBishopPairMG - blackBishopPairMG;
-		int deltaBishopPairEG = whiteBishopPairEG - blackBishopPairEG;
+		int deltaBishopPairMG = whiteBishopPairMG - blackBishopPairMG; deltaBishopPairMG *= EVAL_MULT[2];
+		int deltaBishopPairEG = whiteBishopPairEG - blackBishopPairEG; deltaBishopPairEG *= EVAL_MULT[2];
 		
-		// King Safety (x0.9) - O(16) per side
+		// King Safety (x0.9) - O(16) per side - D
 		int whiteKingSafetyMG = calculateKingSafety(board, Color.WHITE, false);
 		int blackKingSafetyMG = calculateKingSafety(board, Color.BLACK, false);
 		int whiteKingSafetyEG = calculateKingSafety(board, Color.WHITE, true);
 		int blackKingSafetyEG = calculateKingSafety(board, Color.BLACK, true);
-		int deltaSafetyMG = (whiteKingSafetyMG - blackKingSafetyMG) * 9/10;
-		int deltaSafetyEG = (whiteKingSafetyEG - blackKingSafetyEG) * 9/10;
+		int deltaSafetyMG = whiteKingSafetyMG - blackKingSafetyMG; deltaSafetyMG *= EVAL_MULT[3];
+		int deltaSafetyEG = whiteKingSafetyEG - blackKingSafetyEG; deltaSafetyEG *= EVAL_MULT[3];
 
 		
-		// Pawn Structure (x0.8 multiplier) - O(7)+O(64) per side
+		// Pawn Structure (x0.8 multiplier) - O(7)+O(64) per side - D
 		int whiteStructureMG = calculatePawnStructure(board, Color.WHITE, false);
 		int blackStructureMG = calculatePawnStructure(board, Color.BLACK, false);
 		int whiteStructureEG = calculatePawnStructure(board, Color.WHITE, true);
 		int blackStructureEG = calculatePawnStructure(board, Color.BLACK, true);
-		int deltaStructureMG = (whiteStructureMG - blackStructureMG) * 8/10;
-		int deltaStructureEG = (whiteStructureEG - blackStructureEG) * 8/10;
+		int deltaStructureMG = whiteStructureMG - blackStructureMG; deltaStructureMG *= EVAL_MULT[4];
+		int deltaStructureEG = whiteStructureEG - blackStructureEG; deltaStructureEG *= EVAL_MULT[4];
 
 		
-		// Development (x0.8 multiplier) - O(1)
+		// Development (x0.8 multiplier) - O(1) - A
 		int whiteDevelopmentMG = calculateDevelopment(board, Color.WHITE, false);
 		int blackDevelopmentMG = calculateDevelopment(board, Color.BLACK, false);
 		int whiteDevelopmentEG = calculateDevelopment(board, Color.WHITE, true);
 		int blackDevelopmentEG = calculateDevelopment(board, Color.BLACK, true);
-		int deltaDevelopmentMG = (whiteDevelopmentMG - blackDevelopmentMG) * 8/10;
-		int deltaDevelopmentEG = (whiteDevelopmentEG - blackDevelopmentEG) * 8/10;
+		int deltaDevelopmentMG = whiteDevelopmentMG - blackDevelopmentMG; deltaDevelopmentMG *= EVAL_MULT[5];
+		int deltaDevelopmentEG = whiteDevelopmentEG - blackDevelopmentEG; deltaDevelopmentEG *= EVAL_MULT[5];
 
 		
 		//Tapered Evaluation with material-position hybrid
@@ -500,12 +505,12 @@ public class Evaluation
 		score += calculateTapered(gamePhase, deltaMatPosMG, deltaMatPosEG);	
 		
 		
-		// Mobility (Should be O(128ish))
+		// Mobility (100 centipawns per 35 moves) - O(128ish) - A
 		int deltaMoves = 0;
 		if (!APPROXIMATE_EVALUATION) {
 			int whiteMoves = bb.countLegalMoves(Color.WHITE);
 			int blackMoves = bb.countLegalMoves(Color.BLACK);
-			deltaMoves = (whiteMoves - blackMoves)*100/35;
+			deltaMoves = whiteMoves - blackMoves; deltaMoves *= EVAL_MULT[6];
 			score += deltaMoves;
 		}
 
