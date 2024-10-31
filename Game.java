@@ -8,7 +8,7 @@ import java.util.*;
  * A class that handles the chess game by utilizing other classes and methods in the project
  * 
  * @author Victor Gong
- * @version 3/28/2023
+ * @version 10/30/2024
  *
  */
 public class Game
