@@ -9,6 +9,30 @@ import java.util.Vector;
 /**
  * A subclass of Player that chooses a smart valid move each time, experimenting with NegaMax
  * 
+ * SEARCH FRAMEWORK
+ * - Negamax
+ * - Quiescence Search
+ * - Move Sorting
+ * PRUNING
+ * - Alpha-beta
+ * - Null-move
+ * - Futility
+ * - Reverse futility
+ * - Late move reductions
+ * EVALUATION
+ * - Material
+ * - Position Table
+ * - King Safety
+ * - Bishop Pairs
+ * - Mobility
+ * - Development
+ * - Pawn Structure
+ * - Tapered Evaluation
+ * - Play style multipliers
+ * OTHER
+ * - Transposition Table (Zobrist Hashing)
+ * - Bitboard
+ * 
  * @author Victor Gong
  * @version 12/15/2023
  *
@@ -484,7 +508,9 @@ public class SmartPlayerNegamax extends Player
 	 * - Reverse Futility Pruning
 	 * - TT Probing
 	 * - Null Move Pruning
-	 * - Move sort and recursing through each one
+	 * - Move Sort
+	 * - Move Loop, Search Recursion
+	 * - Late Move Reductions
 	 * - TT Storing
 	 * 
 	 * @return The best score in the subtree
